@@ -1,11 +1,11 @@
 module Day18 where
 
-import MPCAS (Parser, runParser, symbol, natural)
+import MPCAS (Parser, runParser, symbol, natural,parenthezised)
 import Control.Applicative (Alternative ((<|>), many))
 
 {-- Parsing with normal precedence --}
 
-expr :: Parser Int
+expr :: Parser Maybe Int
 expr = do 
   t <- term
   do symbol "+"
@@ -13,7 +13,7 @@ expr = do
      return (t + e)
    <|> return t
            
-term :: Parser Int
+term :: Parser Maybe Int
 term = do 
   f <- subExpr expr
   do symbol "*"
@@ -23,7 +23,7 @@ term = do
 
 {-- Parsing with inverted precedence --}
 
-expr' :: Parser Int
+expr' :: Parser Maybe Int
 expr' = do
   t <- term'
   do symbol "*"
@@ -31,7 +31,7 @@ expr' = do
      return (t * e)
    <|> return t
            
-term' :: Parser Int
+term' :: Parser Maybe Int
 term' = do 
   f <- subExpr expr'
   do symbol "+"
@@ -43,14 +43,14 @@ term' = do
 
 opLst = [("+", (+)), ("*", (*))]
 
-operations :: Parser (Int -> Int)
+operations :: Parser Maybe (Int -> Int)
 operations = do 
   o <- symbol "+" <|> symbol "*"
   r <- subExpr exprL2R
   let Just op = lookup o opLst in
     return (op r)   
 
-exprL2R :: Parser Int
+exprL2R :: Parser Maybe Int
 exprL2R = do 
   l <- subExpr exprL2R
   ops <- many operations
@@ -58,12 +58,12 @@ exprL2R = do
 
 {-- subExpr works for all parsers --}
            
-subExpr :: Parser Int -> Parser Int
-subExpr expr = natural <|> symbol "(" *> expr <* symbol ")" 
+subExpr :: Parser Maybe Int -> Parser Maybe Int
+subExpr expr = natural <|> parenthezised expr
 
 {-- Evaluator --}
 
-eval :: Parser Int -> String -> Int
+eval :: Parser Maybe Int -> String -> Int
 eval parser xs = case runParser parser xs of
   Just (n,[])  -> n
   Just (_,out) -> error ("Unused input " ++ out)

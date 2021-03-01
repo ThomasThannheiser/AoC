@@ -43,7 +43,7 @@ evalValueCondition key condition dict = condition $ getValue key dict
 
 getValue :: String -> [(String, String)] -> String
 getValue key dict = value
-  where Just value = Data.List.lookup key dict
+  where Just value = lookup key dict
 
 day4_1 = length . valid
 day4_2 = length .

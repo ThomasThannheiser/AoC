@@ -14,12 +14,12 @@ neighbourhood = [(2, 0), (-2, 0), (1, -2), (-1, -2), (1, 2), (-1, 2)]
 
 symDict = zip symbols neighbourhood
 
-direction :: Parser (Int, Int)
+direction :: Parser Maybe (Int, Int)
 direction = do
   s <- foldr1 (<|>) (map symbol symbols)
   return (fromMaybe (0,0) (lookup s symDict))
   
-tile :: Parser (Int, Int)
+tile :: Parser Maybe (Int, Int)
 tile = do
   nrs <- some direction
   let (xs, ys) = unzip nrs

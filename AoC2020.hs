@@ -81,7 +81,7 @@ letterCount str = 26 - length (abc \\ str)
 
 day6 mapping = sum . map mapping . split' null
 day6_1 = day6 $ letterCount . concat
-day6_2 = day6 $ length . foldr intersect abc
+day6_2 = day6 $ length . foldr1 intersect
 
 -- 6521
 -- 3305
@@ -116,8 +116,9 @@ hasContiguous = elem 248131121 . scanl1 (+)
 day9_1 = last . head . dropWhile hasSum . map (take 26) . tails . map read
 day9_2 lst =  minimum sumLst + maximum sumLst
   where sumLst = take (idx + 1) l
-        Just idx = elemIndex 248131121 (scanl1 (+) l)
+        Just idx = elemIndex part1 (scanl1 (+) l)
         l = head . filter hasContiguous . tails . map read $ lst
+        part1 = day9_1 lst
 
 -- 248131121
 -- 31580383
@@ -191,6 +192,7 @@ day9_2 lst =  minimum sumLst + maximum sumLst
 
 -- in Pharo Smalltalk using Smacc this is trivial
 -- for Haskell look at extra module Day18.hs
+-- also very nice is parsing in Haskell -> Day18MPCAS.hs
 
 -- 21022630974613
 -- 169899524778212
@@ -263,6 +265,6 @@ day25_2 = const "nothing to solve!-)"
 
 
 main = do
-  input <- readFile "day5.input"
-  print . day5_1 . lines $ input
-  print . day5_2 . lines $ input
+  input <- readFile "day6.input"
+  print . day6_1 . lines $ input
+  print . day6_2 . lines $ input

@@ -6,7 +6,7 @@ import AoCHelper (between, split')
 
 {-- parsing with simple parser combinators --
 
-extract :: Parser ((Int, Int), Char, String)
+extract :: Parser Maybe ((Int, Int), Char, String)
 extract = do
   n <- natural
   symbol "-"

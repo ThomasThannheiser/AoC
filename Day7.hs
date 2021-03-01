@@ -7,25 +7,22 @@ import Data.Functor (($>))
 import Data.Bifunctor (second)
 import Control.Applicative (Alternative ((<|>), many, some))
 
--- many -> *
--- some -> +
-
 {-- parsing stuff --}
 
-color :: Parser String
+color :: Parser Maybe String
 color = twoWords <$> identifier <*> identifier
   where twoWords xs ys = xs ++ (' ' : ys) 
   
-outerBag :: Parser String
+outerBag :: Parser Maybe String
 outerBag = color <* string "bags contain "
   
-noInnerBags :: Parser [(Int, String)]
+noInnerBags :: Parser Maybe [(Int, String)]
 noInnerBags = string "no other bags" $> []  
 
-innerBags :: Parser [(Int, String)]
+innerBags :: Parser Maybe [(Int, String)]
 innerBags = (( , ) <$> integer <*> color <* some lower) `sepBy` char ','
   
-parseLine :: Parser (String, [(Int, String)])
+parseLine :: Parser Maybe (String, [(Int, String)])
 parseLine = ( , ) <$> outerBag <*> (noInnerBags <|> innerBags) <* char '.'
   
 rules :: [String] -> [(String, [(Int, String)])]
@@ -54,7 +51,7 @@ shinyGold = "shiny gold"
 day7_1 lst = length (stopIterate sets) - 1 
   where sets = iterate (collect input) [shinyGold]
         input = map (second (map snd)) (rules lst)
-day7_2 lst = colorCount (rules lst) shinyGold - 1
+day7_2 lst = pred . colorCount (rules lst) $ shinyGold
 
 -- 121
 -- 3805

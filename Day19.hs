@@ -13,7 +13,7 @@ data Expr = Val Char
 
 value :: Expr -> [String]
 value (Val c) = [[c]]
-value (And a b) = [x ++ y | x <- value a, y <- value b]
+value (And a b) = (++) <$> value a <*> value b
 value (Or x y) = value x ++ value y
 
 {-- try to evaluate the strings against Expr
@@ -27,7 +27,7 @@ split'' :: [a] -> [([a], [a])]
 split'' xs = zip (inits xs) (tails xs) 
 --}
 
-{-- generating Regex 
+{-- generating Regex only works for part 1 -> Squeak Smalltalk solution 
 expr2Regex :: Expr -> String
 expr2Regex (Val c)   = c 
 expr2Regex (And x y) = expr2Regex x ++ expr2Regex y
@@ -71,14 +71,13 @@ dropWhile4231 _42 _31 s = if has4231 _42 _31 s then dropWhile4231 _42 _31 (dropF
 dropWhile42 :: [String] -> String -> String
 dropWhile42 _42 s = if has42 _42 s then dropWhile42 _42 (drop 8 s) else s
 
--- Part 1 takes over a minute!-(
 -- self parsing "accept" dosn't work in acceptable time for long strings
 -- ToDo: take regEx!? 
 -- Regex dosn't work in Haskell!-O
 -- Solution with simple parser combinators in "Day19 Parser.hs"!-)
-day19_1 input = parse r 0 
-  --length $ filter (`elem` value (parse r 0)) messages
-  where r = map parseRule rules
+day19_1 input = length . filter (`elem` value _0) $ messages
+  where _0 = parse r 0
+        r = map parseRule rules
         (rules, "" : messages) = break null input
         
 day19_2 input = length . filter null . filter4231 $ messages

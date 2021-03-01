@@ -42,8 +42,8 @@ leftToOp = [map reverse . transpose, id, map reverse, transpose,
 goTo :: [[String] -> [String]] -> Int -> 
         (Map Int [Int], Map Int [String]) -> (Int, Int) -> (Map Int [Int], Map Int [String])
 goTo operations side (borderMap, pictureMap) (start, next) = (newBorderMap, newPictureMap)
-  where newPictureMap = Data.Map.insert next newPicture pictureMap
-        newBorderMap = Data.Map.insert next newBorder borderMap
+  where newPictureMap = insert next newPicture pictureMap
+        newBorderMap = insert next newBorder borderMap
         (_, newBorder) = toBorder (next, newPicture)
         newPicture = (operations !! index) picture
         Just index = elemIndex (startBorders !! side) nextBorders
@@ -93,8 +93,8 @@ day20_2 lst = hashCount bigPicture - hashCount monster * monsterCount
         finalGrid = transpose . reverse . map reverse $ grid
         (_, finalPictures) = foldl goingUp rightToLeft grid
         rightToLeft = goingLeft (borderMap, pictureMap) (map head grid)
-        borderMap = Data.Map.fromList intLst
-        pictureMap = Data.Map.fromList inputMap
+        borderMap = fromList intLst
+        pictureMap = fromList inputMap
         grid = take 12 . map fst . iterate nextRow $ (firstRow, connections)
         firstRow = iter (getRow border connections) 10 [next, startCorner]
         [(_, next), (_, _)] = searchNext startCorner connections 

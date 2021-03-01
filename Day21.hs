@@ -1,16 +1,16 @@
 module Day21 where
 
 import MPCAS (Parser, runParser, char, identifier, string, sepBy1, parenthezised)
-import Data.List
+import Data.List (intercalate, sortBy, (\\), intersect)
 import Data.Set (fromList, toList)
 import Control.Applicative (Alternative (many, some))
 
 {-- parsing stuff --}
 
-allergens :: Parser [String]
+allergens :: Parser Maybe [String]
 allergens = parenthezised $ string "contains" *> identifier `sepBy1` char ','
 
-extractFood :: Parser ([String], [String])
+extractFood :: Parser Maybe ([String], [String])
 extractFood = 
   ( , ) <$> some identifier <*> allergens
             
@@ -36,7 +36,7 @@ sortByLength = sortBy (\(_, x) (_, y) -> compare (length x) (length y))
 repeatedSortAndDrop = foldr (.) id . reverse . map (\n -> splitAndDrop n . sortByLength) $ [1..7]
 
 concatToSet :: (([String], [String]) -> [String]) -> [([String], [String])] -> [String]
-concatToSet part = Data.Set.toList . Data.Set.fromList . concatMap part
+concatToSet part = toList . fromList . concatMap part
 
 day21 :: [String] -> ([String], [String], [[String]])
 day21 lst = (ingrediences, allergens, intersections)

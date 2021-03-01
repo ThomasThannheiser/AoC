@@ -18,7 +18,7 @@ nextElem' (input, (turn, last)) =
             Just x -> turn - x))
 
 day15_1 = head . iter nextElem (2020-7) . reverse . readIntLst
-day15_2 lst = snd . iter nextElem' (30000000-8) $ (input, (8,0)) -- Part 2 take 10 minutes !-(
+day15_2 lst = snd . iter nextElem' (30000000-8) $ (input, (8,0)) -- Part 2 takes 10 minutes !-(
   where input = fromList $ zip (readIntLst lst) [1..]
 
 -- 468
