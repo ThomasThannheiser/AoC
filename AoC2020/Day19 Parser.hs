@@ -1,6 +1,5 @@
 import AoCHelper (split')
 import MPCAS (Parser, runParser, char)
-import Data.Functor (($>))
 import Control.Applicative (Alternative ((<|>)))
 
 data Rule = Val Char 
@@ -10,7 +9,7 @@ data Rule = Val Char
           deriving Show
 
 genParser :: Rule -> [(Int, Rule)] -> Parser [] ()
-genParser (Val c)   _     = char c $> ()
+genParser (Val c)   _     = () <$ char c
 genParser (And x y) rules = genParser x rules  *> genParser y rules
 genParser (Or x y)  rules = genParser x rules <|> genParser y rules
 genParser (See n)   rules = genParser x rules
@@ -31,9 +30,10 @@ parseRule s = (read nr, toRule rs)
   where rs = map words . split' (== '|') $ r
         (nr, ':' : ' ' : r) = span (/= ':') s
 
-day19 input = length . filter matched . map (runParser $ genParser (See 0) rulesMap) $ messages
-  where rulesMap = map parseRule rules
-        (rules, "" : messages) = break null input
+day19 input = length . filter matched . map parse $ messages
+  where (rules, "" : messages) = break null input
+        rulesMap = map parseRule rules
+        parse = runParser $ genParser (See 0) rulesMap
         
 main = do
   input1 <- readFile "day19.input"
