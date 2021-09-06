@@ -4,6 +4,7 @@ import AoCHelper (iter)
 import MPCAS (Parser, runParser, symbol)
 import Data.List (sort, group, groupBy, lookup, intersect, union)
 import Data.Maybe (fromMaybe)
+import Data.Bifunctor (bimap)
 import Control.Applicative (Alternative ((<|>), some))
 
 
@@ -31,7 +32,7 @@ parse = maybe (0,0) fst . runParser tile
  --}
  
 neighbours :: (Int, Int) -> [(Int, Int)]
-neighbours (x, y) = map (\(n, m) -> (n + x, m + y)) neighbourhood
+neighbours (x, y) = map (bimap (+x) (+y)) neighbourhood
 
 blacks :: [String] -> [(Int, Int)]
 blacks = map head . filter (odd . length) . group . sort . map parse

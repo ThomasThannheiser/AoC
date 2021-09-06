@@ -11,8 +11,7 @@ allergens :: Parser Maybe [String]
 allergens = parenthezised $ string "contains" *> identifier `sepBy1` char ','
 
 extractFood :: Parser Maybe ([String], [String])
-extractFood = 
-  ( , ) <$> some identifier <*> allergens
+extractFood = (,) <$> some identifier <*> allergens
             
 parseFood :: String -> ([String], [String])
 parseFood = maybe ([], []) fst . runParser extractFood
@@ -21,10 +20,10 @@ parseFood = maybe ([], []) fst . runParser extractFood
 
 intersectIngrediences :: [([String], [String])] -> [String] -> String -> [String]
 intersectIngrediences input ingredLst allergen =
-  foldr (intersect . fst) ingredLst . filter ((allergen `elem`) . snd) $ input
+  foldr (intersect . fst) ingredLst . filter (elem allergen . snd) $ input
 
 countIngredience :: String -> [([String], [String])] -> Int
-countIngredience ingredience = length . filter ((ingredience `elem`) . fst)
+countIngredience ingredience = length . filter (elem ingredience . fst)
 
 splitAndDrop :: Int -> [(String, [String])] -> [(String, [String])]
 splitAndDrop n sorted = allergen ++ map (\(x, y) -> (x, y \\ snd (last allergen))) rest

@@ -36,10 +36,10 @@ letter   = satisfy isAlpha
 alphanum = satisfy isAlphaNum
 digit    = satisfy isDigit
 
-string :: MonadPlus m => String -> Parser m String
+string :: (Alternative m, Monad m) => String -> Parser m String
 string = foldr (\c -> (<*>) ((:) <$> char c)) (pure [])
 
-ident :: MonadPlus  m => Parser m String
+ident :: MonadPlus m => Parser m String
 ident = (:) <$> lower <*> many alphanum
 
 nat, int :: MonadPlus m => Parser m Int
@@ -49,7 +49,7 @@ int = (negate <$ char '-' <|> pure id) <*> nat
 {-- separating and chaining --}
 
 sepBy, sepBy1 :: MonadPlus m => Parser m a -> Parser m b -> Parser m [a]
-sepBy p sep = (p `sepBy1` sep) <|> pure []
+sepBy  p sep = (p `sepBy1` sep) <|> pure []
 sepBy1 p sep = (:) <$> p <*> many (sep *> p)
 
 chainl, chainr :: MonadPlus m => Parser m a -> Parser m (a -> a -> a) -> a -> Parser m a
@@ -81,8 +81,8 @@ integer = token int
 embraced :: MonadPlus m => Char -> Char -> Parser m a -> Parser m a
 embraced open close p = char open *> p <* char close
 
-parenthezised, bracketed, tagged, curlied :: MonadPlus m => Parser m a -> Parser m a
+parenthezised, bracketed, taged, curlied :: MonadPlus m => Parser m a -> Parser m a
 parenthezised = embraced '(' ')'
 bracketed     = embraced '[' ']'
 curlied       = embraced '{' '}'
-tagged        = embraced '<' '>'
+taged         = embraced '<' '>'

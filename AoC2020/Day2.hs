@@ -8,18 +8,15 @@ import AoCHelper (between, split')
 
 extract :: Parser Maybe ((Int, Int), Char, String)
 extract = do
-  n <- natural
-  symbol "-"
-  m <- natural
-  c <- lower
-  symbol ":"
+  (n, m) <- (,) <$> natural <* symbol "-" <*> natural
+  c <- lower <* symbol ":"
   s <- some lower
   return ((n, m), c, s)
 
 parse :: String -> ((Int, Int), Char, String)
-parse = maybe ((0,0), '', "") fst . runParser extract
+parse = maybe ((0,0), '$', "") fst . runParser extract
 
- --}
+--}
 
 {-- parsing by hand --}
 
@@ -37,15 +34,12 @@ validPW1 ((min, max), c, code) = count `between` (min, max)
 validPW2 ((pos1, pos2), c, code) = codeAtPosOk pos1 /= codeAtPosOk pos2
   where codeAtPosOk pos = code !! (pos - 1) == c
 
-day2 validCond = length . filter validCond . map parse
-day2_1 = day2 validPW1
-day2_2 = day2 validPW2
-
--- 614
--- 354
+day2 input = map (($ input) . countValid) [validPW1, validPW2]
+  where countValid validCond = length . filter validCond . map parse
 
 
 main = do
-  input <- readFile "day2.input"
-  print . day2_1 . lines $ input
-  print . day2_2 . lines $ input
+  print . day2 . lines =<< readFile "day2.input"
+
+-- 614
+-- 354

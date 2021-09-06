@@ -3,7 +3,6 @@ module Day7 where
 import MPCAS (Parser, runParser, char, space, lower, integer, string, identifier, sepBy)
 import Data.List ((\\))
 import Data.Set as Set (fromList, toList)
-import Data.Functor (($>))
 import Data.Bifunctor (second)
 import Control.Applicative (Alternative ((<|>), many, some))
 
@@ -17,13 +16,16 @@ outerBag :: Parser Maybe String
 outerBag = color <* string "bags contain "
   
 noInnerBags :: Parser Maybe [(Int, String)]
-noInnerBags = string "no other bags" $> []  
+noInnerBags = [] <$ string "no other bags"  
+
+innerBag :: Parser Maybe (Int, String)
+innerBag = (,) <$> integer <*> color <* some lower
 
 innerBags :: Parser Maybe [(Int, String)]
-innerBags = (( , ) <$> integer <*> color <* some lower) `sepBy` char ','
+innerBags = innerBag `sepBy` char ','
   
 parseLine :: Parser Maybe (String, [(Int, String)])
-parseLine = ( , ) <$> outerBag <*> (noInnerBags <|> innerBags) <* char '.'
+parseLine = (,) <$> outerBag <*> (noInnerBags <|> innerBags) <* char '.'
   
 rules :: [String] -> [(String, [(Int, String)])]
 rules = map (maybe ("", []) fst . runParser parseLine)
@@ -31,7 +33,7 @@ rules = map (maybe ("", []) fst . runParser parseLine)
  --}
 
 collectFor :: [(String, [String])] -> String -> [String]
-collectFor lst color = map fst . filter (\(_, y) -> color `elem` y) $ lst
+collectFor lst color = map fst . filter (elem color . snd) $ lst
 
 collect :: [(String, [String])] -> [String] -> [String]
 collect lst colors = toList . fromList $ colors ++ concatMap (collectFor lst) colors

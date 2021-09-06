@@ -27,7 +27,7 @@ day3_1 input = 1 + (length . takeWhile (<= read input) $ [x*x | x <- [1..]])
 
 -- 552
 
-day4 = length . filter (\xs -> size (Data.Set.fromList xs) == length xs)
+day4 = length . filter (\xs -> size (fromList xs) == length xs)
 day4_1 = day4 . map words 
 day4_2 =  day4 . map (map sort . words)
 

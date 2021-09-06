@@ -4,15 +4,11 @@ import Data.List (tails, sort, elemIndex, intersect, (\\))
 
 {-- day 1 --}
 
-day1 :: [String] -> [Int]
-day1 = map read
-
-day1_1 input = [ x * y | x <- lst, y <- lst,
-                         x <= y, x + y == 2020 ]
-  where lst = day1 input
-day1_2 input = [ x * y * z | x <- lst, y <- lst, x <= y, 
-                             z <- lst, y <= z, x + y + z == 2020 ]
-  where lst = day1 input
+day11 lst = [ x * y | x <- lst, y <- lst,
+                      x <= y, x + y == 2020 ]
+day12 lst = [ x * y * z | x <- lst, y <- lst, x <= y, 
+                          z <- lst, y <= z, x + y + z == 2020 ]
+day1 input = map (($ lines input) . (. map read)) [day11, day12]
 
 -- 319531
 -- 244300320
@@ -80,6 +76,7 @@ letterCount :: String -> Int
 letterCount str = 26 - length (abc \\ str)
 
 day6 mapping = sum . map mapping . split' null
+day6_1, day6_2 :: [String] -> Int
 day6_1 = day6 $ letterCount . concat
 day6_2 = day6 $ length . foldr1 intersect
 
@@ -110,14 +107,11 @@ hasSum numbers = not . null $ [ x | x <- elements, y <- elements, x < y, x + y =
   where elements = init numbers
         sum = last numbers
 
-hasContiguous  :: [Int] -> Bool
-hasContiguous = elem 248131121 . scanl1 (+)
-
 day9_1 = last . head . dropWhile hasSum . map (take 26) . tails . map read
 day9_2 lst =  minimum sumLst + maximum sumLst
   where sumLst = take (idx + 1) l
         Just idx = elemIndex part1 (scanl1 (+) l)
-        l = head . filter hasContiguous . tails . map read $ lst
+        l = head . filter (elem part1 . scanl1 (+)) . tails . map read $ lst
         part1 = day9_1 lst
 
 -- 248131121
@@ -265,6 +259,4 @@ day25_2 = const "nothing to solve!-)"
 
 
 main = do
-  input <- readFile "day6.input"
-  print . day6_1 . lines $ input
-  print . day6_2 . lines $ input
+  print . day1 =<< readFile "day1.input"
