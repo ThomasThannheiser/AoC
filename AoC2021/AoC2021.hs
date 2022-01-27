@@ -7,15 +7,12 @@ import Data.Maybe (fromMaybe)
 
 {-- day1 --}
 
-countInc :: [Int] -> Int
-countInc = length . filter (> 0)
+day1 :: ([Int] -> [Bool]) -> [String] -> Int
+day1 incFkt = length . filter id . incFkt . map read
 
 day1_1, day1_2 :: [String] -> Int
-day1_1 = countInc . diff . map read
-day1_2 input = countInc . diff $ add3
-  where
-    lst = map read input
-    add3 = zipWith (+) (zipWith (+) (tail . tail $ lst) (tail lst)) lst
+day1_1 = day1 $ \xs -> zipWith (<) xs (tail xs)
+day1_2 = day1 $ \xs -> zipWith (<) xs (tail . tail . tail $ xs)
 
 -- 1581
 -- 1618
@@ -216,7 +213,31 @@ day10_2 input = values !! (length values `div` 2)
 -- 2703
 -- 2984946368465
 
+{-- day 25 --}
+
+goEast :: String -> String
+goEast s = init . tail . go $ last s : s ++ [head s]
+  where
+    go [] = []
+    go ('>' : '.' : rest) = '.' : '>' : go rest
+    go (x : rest) = x : go rest
+
+goSouth :: String -> String
+goSouth s = init . tail . go $ last s : s ++ [head s]
+  where
+    go [] = []
+    go ('v' : '.' : rest) = '.' : 'v' : go rest
+    go (x : rest) = x : go rest
+
+move :: [String] -> [String]
+move = transpose . map goSouth . transpose . map goEast
+
+day25_1 input = fmap (+ 1) . elemIndex True . zipWith (==) moves $ tail moves
+  where
+    moves = iterate move input
+
+-- 321
 
 main = do
-  print . day10_1 . lines =<< readFile "day10.input"
-  print . day10_2 . lines =<< readFile "day10.input"
+  print . day1_1 . lines =<< readFile "day1.input"
+  print . day1_2 . lines =<< readFile "day1.input"
