@@ -9,12 +9,10 @@ commands :: [(String, CMD)]
 commands = [("up", UP), ("down", DOWN), ("forward", FORWARD)]
 
 makeCmdParser :: (String, CMD) -> Parser Maybe CMD
-makeCmdParser (str, cmd) = do
-  symbol str
-  return cmd
+makeCmdParser (str, cmd) = cmd <$ symbol str
 
 command :: Parser Maybe CMD
-command = asum (map makeCmdParser commands)
+command = asum $ map makeCmdParser commands
 
 extract :: Parser Maybe (CMD, Int)
 extract = (,) <$> command <*> natural
@@ -37,7 +35,7 @@ interpret2 (h, v, aim) (cmd, delta) = case cmd of
 
 day2_1, day2_2 :: [String] -> Int
 day2_1 input = h * v
-  where (h, v) = foldl interpret1 (0, 0) $ map parse input 
+  where (h, v) = foldl interpret1 (0, 0) $ map parse input
 day2_2 input = h * v
   where (h, v, _) = foldl interpret2 (0, 0, 0) $ map parse input
 
