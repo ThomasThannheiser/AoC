@@ -1,4 +1,4 @@
-module AoC.AoC2021.Day8 where
+module Day8 where
 
 import AoCHelper (split')
 import Data.Set (Set, isSubsetOf, fromList)
@@ -10,7 +10,7 @@ length2Nr 2 = 1
 length2Nr 3 = 7
 length2Nr 4 = 4
 length2Nr 7 = 8
-length2Nr x = -1
+length2Nr _ = -1
 
 find8471 :: [Set Char] -> [(Int, Set Char)]
 find8471 xs = map (first length2Nr) lengthLst

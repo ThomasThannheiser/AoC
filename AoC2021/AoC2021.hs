@@ -1,6 +1,6 @@
 module AoC2021 where
 
-import AoCHelper (bin2Int, diff, iter, readIntLst, split')
+import AoCHelper (bin2Int, iter, readIntLst, split')
 import Data.Char (digitToInt)
 import Data.List (elemIndex, group, sort, transpose, (\\))
 import Data.Maybe (fromMaybe)
@@ -153,12 +153,11 @@ day7_2 input = fkt (pred average) lst
 
 day9_1 :: [String] -> Int
 day9_1 input =
-  sum . map sum . zz (*) m $
-    map (map fromEnum) $ zz (&&) (t h m) (h m)
+  sum . map sum . zz (*) m $ map (map fromEnum) $ zz (&&) (t h m) (h m)
   where
-    h m' = zz (&&) (map f m') (map g m')
-    f l = zipWith (<) l (tail l) ++ [True]
-    g = reverse . f . reverse
+    h row = zz (&&) (map f row) (map (r f) row)
+    f row = zipWith (<) row (tail row) ++ [True]
+    r fkt = reverse . fkt . reverse
     t fkt = transpose . fkt . transpose
     zz = zipWith . zipWith
     m = map (map ((1 +) . digitToInt)) input
@@ -232,6 +231,7 @@ goSouth s = init . tail . go $ last s : s ++ [head s]
 move :: [String] -> [String]
 move = transpose . map goSouth . transpose . map goEast
 
+day25_1 :: [String] -> Maybe Int
 day25_1 input = fmap (+ 1) . elemIndex True . zipWith (==) moves $ tail moves
   where
     moves = iterate move input

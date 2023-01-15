@@ -69,6 +69,7 @@ eval parser xs = case runParser parser xs of
   Just (_,out) -> error ("Unused input " ++ out)
   Nothing      -> error "Invalid input"
 
+day18_0, day18_1, day18_2 :: [String] -> Int
 day18_0 = sum . map (eval expr)       -- Normal calculation! Not part of the puzzle.
 day18_1 = sum . map (eval exprL2R)
 day18_2 = sum . map (eval expr')
