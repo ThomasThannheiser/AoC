@@ -58,7 +58,7 @@ calculate :: Dimension -> Pos -> Pos -> BlizzardPositions -> [(BlizzardPositions
 calculate dim start end bps =
   takeWhile ((end `notElem`) . snd) . iterate (step dim start) $ (bps, singleton start)
 
-day24 :: [String] -> (Int, Int)
+day24 :: [String] -> Pair Int
 day24 input = ((,) <$> head <*> sum) . map (succ . length) $ [run, back, again]
   where
     again = calculate' start end $ pushToEnd back

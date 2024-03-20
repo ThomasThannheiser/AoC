@@ -5,7 +5,12 @@ import Data.Bifunctor (bimap)
 
 type Pair a = (a, a)
 
-between :: Int -> (Int, Int) -> Bool
+type Grid a = [[a]]
+
+gridAt :: Grid a -> Pair Int -> a
+gridAt grid (y, x) = grid !! y !! x
+
+between :: Ord a => a -> Pair a -> Bool
 between value (min, max) = min <= value && value <= max
 
 bin2Int :: [Bool] -> Int
@@ -20,8 +25,13 @@ readIntLst s = read $ '[' : s ++ "]"
 (.+.) :: Pair Int -> Pair Int -> Pair Int
 (.+.) (x, y) = bimap (+ x) (+ y)
 
+(.-.) :: Pair Int -> Pair Int -> Pair Int
+(.-.) (x, y) = (.+.) (x, y) . both negate 
+
 chunksOf :: Int -> [a] -> [[a]]
-chunksOf n = unfoldr $ \xs -> if null xs then Nothing else Just $ splitAt n xs
+chunksOf n = unfoldr f
+  where f [] = Nothing
+        f xs = Just $ splitAt n xs
 
 splitBy :: (a -> Bool) -> [a] -> [[a]]
 splitBy p = unfoldr f
@@ -31,21 +41,21 @@ splitBy p = unfoldr f
 splitWith :: Char -> String -> (String, String)
 splitWith c s = let (a, _:b) = break (== c) s in (a, b)
 
+skipUpTo :: Char -> String -> String
+skipUpTo c = snd . splitWith c
+
 both :: (a -> b) -> (a, a) -> (b, b)
 both f (x, y) = (f x, f y)
 
 windowed :: Int -> [a] -> [[a]]
 windowed n = filter ((== n) . length) . map (take n) . tails
 
-(.-.) :: Pair Int -> Pair Int -> Pair Int
-(.-.) (x, y) = (.+.) (x, y) . both negate
+cross :: [Pair Int]
+cross = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+
+nbh :: Pair Int -> [Pair Int]
+nbh z = map (z .+.) cross
 
 fixPt :: Eq a => (a -> a) -> a -> a
-fixPt f x = let x' = f x in 
-  if x == x' then x else fixPt f x'
-
-odds, evens :: [a] -> [a]
-odds [] = []
-odds (x : xs) = evens xs
-evens [] = []
-evens (x : xs) = x : odds xs
+fixPt f x = let x' = f x
+             in if x' == x then x else fixPt f x'

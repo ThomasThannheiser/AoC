@@ -21,7 +21,9 @@ readIntLst s = read $ '[' : s ++ "]"
 (.+.) (x, y) = bimap (+ x) (+ y)
 
 chunksOf :: Int -> [a] -> [[a]]
-chunksOf n = unfoldr $ \xs -> if null xs then Nothing else Just $ splitAt n xs
+chunksOf n = unfoldr f
+  where f [] = Nothing
+        f xs = Just $ splitAt n xs
 
 splitBy :: (a -> Bool) -> [a] -> [[a]]
 splitBy p = unfoldr f
@@ -39,3 +41,10 @@ windowed n = filter ((== n) . length) . map (take n) . tails
 
 (.-.) :: Pair Int -> Pair Int -> Pair Int
 (.-.) (x, y) = (.+.) (x, y) . both negate 
+
+cross :: [Pair Int]
+cross = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+
+fixPt :: Eq a => (a -> a) -> a -> a
+fixPt f x = let x' = f x
+             in if x' == x then x else fixPt f x'

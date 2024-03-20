@@ -2,7 +2,7 @@
 
 module AoC2022 where
 
-import AoCHelper (Pair, both, chunksOf, iter, splitBy, splitWith, windowed, (.+.), (.-.))
+import AoCHelper (Pair, both, odds, chunksOf, iter, splitBy, splitWith, windowed, (.+.), (.-.))
 import MPCAS (Parser, runParser, anyChar, bracketed, char, intP, sepBy, string, symbol, token, upper)
 
 import Control.Applicative (many, some, (<|>))
@@ -100,12 +100,6 @@ day4_2 = day4 f
 parseMove :: String -> (Int, Int, Int)
 parseMove s = let [count, from, to] = take 3 . map read . odds . words $ s in 
               (count, from, to)
-
-odds, evens :: [a] -> [a]
-odds [] = []
-odds (x : xs) = evens xs
-evens [] = []
-evens (x : xs) = x : odds xs
 
 move :: (String -> String) -> (Int, Int, Int) -> [String] -> [String]
 move order (count, from, to) stacks = zipWith f [0 ..] stacks
@@ -267,12 +261,14 @@ data Tree a
   deriving (Show)
 
 instance Eq a => Eq (Tree a) where
+  (==) :: Eq a => Tree a -> Tree a -> Bool
   Leaf x == Leaf y = x == y
   Leaf x == Tree y = [Leaf x] == y
   Tree x == Leaf y = x == [Leaf y]
   Tree x == Tree y = x == y
 
 instance Ord a => Ord (Tree a) where
+  compare :: Ord a => Tree a -> Tree a -> Ordering
   compare (Leaf x) (Leaf y) = compare x y
   compare (Leaf x) (Tree y) = compare [Leaf x] y
   compare (Tree x) (Leaf y) = compare x [Leaf y]
@@ -354,7 +350,6 @@ day15_2 input = x * 4000000 + y
 
 -- 5832528
 ---13360899249595
-
 
 
 {-- day 16 --}
@@ -593,5 +588,5 @@ day25_1 = int2SNAFU . sum . map snafu2Int
 
 main :: IO ()
 main = do
-  input <- readFile "day19.input"
-  print . day19_1 . lines $ input
+  input <- readFile "day1.input"
+  print . day1_1 . lines $ input

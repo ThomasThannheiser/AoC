@@ -5,7 +5,7 @@ module MPCAS where
 
 import Data.Char (isUpper, isLower, isSpace, isDigit, isAlpha, isAlphaNum)
 import Control.Applicative (Alternative ((<|>), empty, many, some))
-import Control.Monad.Trans.State.Strict (StateT (StateT, runStateT))
+import Control.Monad.Trans.State.Lazy (StateT (StateT, runStateT))
 import Control.Monad (MonadPlus)
 
 newtype Parser m a = Parser { unParser :: StateT String m a }

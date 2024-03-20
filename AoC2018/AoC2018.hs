@@ -1,13 +1,11 @@
-{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-{-# HLINT ignore "Use notElem" #-}
 module AoC2018 where
 
 import MPCAS (Parser, anyChar, char, symbol, runParser, integer, parenthezised)
-import AoCHelper ((.+.))
 import Data.Char (ord, toUpper)
 import Data.List (group, sort, (\\), sortBy)
 import Data.Set (elemAt, fromList, difference, toList)
 import Data.Text.Internal.Read (IParser(runP))
+import GHC.CmmToAsm.AArch64.Instr (x0)
 
 {-- day 1 --}
 
@@ -17,12 +15,15 @@ day1 = map (read . filter (/= '+'))
 day1_1 :: [String] -> Integer
 day1_1 = sum . day1
 
--- day1_2 lst = findFirstDublicateIn $ scanl (+) 0 $ cycle . day1 $ lst
-day1_2 input = map (\x -> (x `mod` 522, x `div` 522)) lst
-  where
-    lst = scanl (+) 0 . day1 $ input
+-- takes a little to long!-/
+day1_2 :: [String] -> Integer
+day1_2 lst = findFirstDublicateIn [] $ scanl (+) 0 $ cycle . day1 $ lst
+  where findFirstDublicateIn lst (x : xs)
+          | x `elem` lst = x
+          | otherwise = findFirstDublicateIn (x : lst) xs
 
 -- 522
+-- 73364
 
 {-- day 2 --}
 
@@ -134,5 +135,6 @@ day23_1 input = length . filter (\(p, r) -> distance p (fst greatest) <= snd gre
 -- 172
 
 main = do
-  input <- readFile "23_2018.txt"
-  print . day23_1 . lines $ input
+  input <- readFile "1_2018.txt"
+  print . day1_1 . lines $ input
+  print . day1_2 . lines $ input
