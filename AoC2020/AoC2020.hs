@@ -1,4 +1,4 @@
-import AoCHelper (split', bin2Int)
+import AoCHelper (splitBy, bin2Int)
 import Data.List (tails, sort, elemIndex, intersect, (\\))
 
 
@@ -34,7 +34,10 @@ half :: [a] -> [a]
 half (x : y : xs) = x : half xs
 half lst = lst
 
+day31 :: [String] -> Int -> Int
 day31 lst n = length . filter isTree $ zip lst (steps n)
+
+day3_1, day3_2 :: [String] -> Int
 day3_1 lst = day31 lst 3
 day3_2 lst = day31 (half lst) 1 * (product . map (day31 lst) $ [1, 3, 5, 7])
 
@@ -59,6 +62,7 @@ seatID (rCode, cCode) = row * 8 + column
 code2Nr :: [String] -> [Int]
 code2Nr = map (seatID . splitAt 7)
 
+day5_1, day5_2 :: [String] -> Int
 day5_1 = maximum . code2Nr
 day5_2 lst = (sorted !! n) + 1
   where Just n = elemIndex (-2) $ zipWith (-) sorted (tail sorted)
@@ -70,12 +74,15 @@ day5_2 lst = (sorted !! n) + 1
 
 {-- day 6 --}
 
+abc :: [Char]
 abc = ['a'..'z']
 
 letterCount :: String -> Int
 letterCount str = 26 - length (abc \\ str)
 
-day6 mapping = sum . map mapping . split' null
+day6 :: ([String] -> Int) -> [String] -> Int
+day6 mapping = sum . map mapping . splitBy null
+
 day6_1, day6_2 :: [String] -> Int
 day6_1 = day6 $ letterCount . concat
 day6_2 = day6 $ length . foldr1 intersect
@@ -107,6 +114,7 @@ hasSum numbers = not . null $ [ x | x <- elements, y <- elements, x < y, x + y =
   where elements = init numbers
         sum = last numbers
 
+day9_1, day9_2 :: [String] -> Int
 day9_1 = last . head . dropWhile hasSum . map (take 26) . tails . map read
 day9_2 lst =  minimum sumLst + maximum sumLst
   where sumLst = take (idx + 1) l
@@ -241,17 +249,21 @@ day9_2 lst =  minimum sumLst + maximum sumLst
 
 {-- day 25 --}
 
+modul :: Integer
 modul = 20201227
 
 transform :: Integer -> (Integer -> Integer)
 transform n x = mod (n * x) modul
 
+day25_1 :: [String] -> Integer
 day25_1 lst = (pkc ^ m) `mod` modul
   where Just n = elemIndex pkc trans7
         Just m = elemIndex pkd trans7
         trans7 = iterate (transform 7) 1
         (pkc, pkd) = (read a, read b)
         [a, b] = lst
+        
+day25_2 :: b -> String
 day25_2 = const "nothing to solve!-)"
 
 -- 18293391

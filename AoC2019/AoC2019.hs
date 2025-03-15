@@ -2,13 +2,16 @@
 
 module AoC2019 where
 
-import AoCHelper (iter, split')
-import Data.List (group, transpose)
-import Data.List.Split (chunksOf)
-import Data.Maybe (fromMaybe)
-import Data.Set (Set, empty, fromList, intersection, toList, union)
+import AoCHelper (chunksOf, iter, readIntLst, splitBy, splitWith, Pair)
+import Data.List (group, groupBy, transpose, sort, elemIndex, (\\))
+import Data.Map as Map (Map, fromList, insert, lookup)
+import Data.Maybe (fromMaybe, fromJust, isJust)
+import Data.Set as Set (Set, empty, fromList, intersection, toList, union)
 import Data.Text (pack, replace, splitAt, unpack)
 import MPCAS (Parser, integer, runParser, symbol)
+import Data.Graph (graphFromEdges, vertices, topSort, reverseTopSort)
+import Data.Tuple (swap)
+import Data.Function (on)
 
 {-- day 1 --}
 
@@ -25,6 +28,30 @@ day1_2 = sum . map (iterFuel . read)
 -- 3406432
 -- 5106777
 
+{-- day 2 --}
+
+go :: Int -> Map Int Int -> Int
+go n prog
+  | Map.lookup n prog == Just 99 = fromJust $ Map.lookup 0 prog
+  | otherwise =
+    let op = if Map.lookup n prog == Just 1 then (+) else (*)
+        source1 = fromJust $ Map.lookup (fromJust $ Map.lookup (n + 1) prog) prog
+        source2 = fromJust $ Map.lookup (fromJust $ Map.lookup (n + 2) prog) prog
+        target = fromJust $ Map.lookup (n + 3) prog
+     in go (n + 4) $ insert target (op source1 source2) prog
+
+day2 :: Int -> Int -> [String] -> Int
+day2 x y = go 0 . insert 2 y . insert 1 x . Map.fromList . zip [0 ..] . readIntLst . head
+
+day2_1 :: [String] -> Int
+day2_1 = day2 12 2
+
+day2_2 :: [String] -> Int
+day2_2 input = head [100 * x + y | x <- [0..99], y <- [0..99], day2 x y input == 19690720]
+
+-- 3760627
+-- 7195
+
 {-- day 3 --}
 
 type Cmd = (Char, Int)
@@ -33,7 +60,7 @@ toCmd :: String -> Cmd
 toCmd (c : r) = (c, read r)
 toCmd _ = ('U', 0)
 
-buildWay :: ((Int, Int), Set (Int, Int)) -> Cmd -> ((Int, Int), Set (Int, Int))
+buildWay :: (Pair Int, Set (Pair Int)) -> Cmd -> (Pair Int, Set (Pair Int))
 buildWay ((x, y), s) cmd = (p, s')
   where
     p = case cmd of
@@ -42,21 +69,53 @@ buildWay ((x, y), s) cmd = (p, s')
       ('R', c) -> (x + c, y)
       ('L', c) -> (x - c, y)
       _ -> (x, y)
-    s' =
-      s `union` case cmd of
-        ('U', c) -> fromList [(x, y + d) | d <- [1 .. c]]
-        ('D', c) -> fromList [(x, y - d) | d <- [1 .. c]]
-        ('R', c) -> fromList [(x + d, y) | d <- [1 .. c]]
-        ('L', c) -> fromList [(x - d, y) | d <- [1 .. c]]
-        _ -> empty
+    s' = s `union` case cmd of
+      ('U', c) -> Set.fromList [(x, y + d) | d <- [1 .. c]]
+      ('D', c) -> Set.fromList [(x, y - d) | d <- [1 .. c]]
+      ('R', c) -> Set.fromList [(x + d, y) | d <- [1 .. c]]
+      ('L', c) -> Set.fromList [(x - d, y) | d <- [1 .. c]]
+      _ -> empty
 
-day3_1 :: [String] -> Int
-day3_1 input = minimum . map (\(x, y) -> abs x + abs y) . toList $ cutting
+goWay :: (Pair Int, [[Pair Int]]) -> Cmd -> (Pair Int, [[Pair Int]])
+goWay ((x, y), l) cmd = (p, l')
   where
-    cutting = (snd . head $ points) `intersection` (snd . last $ points)
-    points = map (foldl buildWay ((0, 0), empty) . (map toCmd . split' (== ','))) input
+    p = case cmd of
+      ('U', c) -> (x, y + c)
+      ('D', c) -> (x, y - c)
+      ('R', c) -> (x + c, y)
+      ('L', c) -> (x - c, y)
+      _ -> (x, y)
+    l' = (case cmd of
+      ('U', c) -> [(x, y + d) | d <- [0 .. c]]
+      ('D', c) -> [(x, y - d) | d <- [0 .. c]]
+      ('R', c) -> [(x + d, y) | d <- [0 .. c]]
+      ('L', c) -> [(x - d, y) | d <- [0 .. c]]
+      _ -> []) : l
+
+count :: [[Pair Int]] -> Pair Int -> Int
+count [] _ = 0
+count (xs : xss) p =
+  case elemIndex p xs of
+    Nothing -> length xs - 1 + count xss p
+    Just x -> x
+
+day3 :: [String] -> ([[Cmd]], [Pair Int])
+day3 input = (cmds, crossing) 
+  where
+    cmds = map (map toCmd . splitBy (== ',')) input
+    points = map (foldl buildWay ((0, 0), empty)) cmds
+    crossing = toList $ ((intersection `on` snd) <$> head <*> last) points
+
+day3_1, day3_2 :: [String] -> Int
+day3_1 = minimum . map (((+) `on` abs) <$> fst <*> snd) . snd . day3
+
+day3_2 input = minimum $ map ((+) <$> count w1 <*> count w2) crossing
+  where
+    (cmds, crossing) = day3 input
+    [w1, w2] = map (reverse . snd . foldl goWay ((0,0), [])) cmds
 
 -- 209
+-- 43258
 
 {-- day 4 --}
 
@@ -75,19 +134,28 @@ day4_2 = day4 (elem 2)
 
 {-- day 6 --}
 
-day6_1 :: [String] -> Int
-day6_1 input = sum . map orbits $ orbiters
+day6 :: [String] -> ([Pair String], String -> [Maybe String])
+day6 input = (orbitMap, searchWay)
   where
-    orbiters = map fst orbitMap
-    orbitMap = map (toPair . split' (== ')')) input
-    toPair [x, y] = (y, x)
-    toPair _ = ("", "")
-    orbits "COM" = 0
-    orbits x =
-      let Just y = lookup x orbitMap
-       in 1 + orbits y
+    orbitMap = map (swap . splitWith ')') input
+    back node = Prelude.lookup node orbitMap
+    searchWay node = takeWhile isJust . iterate (back =<<) $ pure node
 
+day6_1, day6_2 :: [String] -> Int
+day6_1 input = sum . map (orbits . fst) $ orbitMap
+  where
+    (orbitMap, searchWay) = day6 input
+    orbits "COM" = 0
+    orbits node = pred . length $ searchWay node
+    
+day6_2 input = length (san \\ you) + length (you \\ san) - 2
+  where
+    (_, searchWay) = day6 input
+    you = searchWay "YOU"
+    san = searchWay "SAN"
+    
 -- 139597
+-- 286
 
 {-- day 8 --}
 
@@ -149,10 +217,11 @@ step xs = foldr f [] xs
        in (add (fst x) vd, add vd $ uncurry add x) : ys
 
 day12_1 :: [String] -> Int
-day12_1 = sum . map energy . iter step 1000 . zip (repeat (0, 0, 0)) . map parsePosition
+day12_1 = sum . map energy . iter 1000 step . map (((0, 0, 0),) . parsePosition)
 
 -- 14809
 
 main = do
-  input <- readFile "3_2019.txt"
-  print . day3_1 . lines $ input
+  input <- readFile "6_2019.txt"
+  print . day6_1 . lines $ input
+  print . day6_2 . lines $ input

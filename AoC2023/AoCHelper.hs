@@ -7,8 +7,8 @@ type Pair a = (a, a)
 
 type Grid a = [[a]]
 
-gridAt :: Grid a -> Pair Int -> a
-gridAt grid (y, x) = grid !! y !! x
+(@) :: Grid a -> Pair Int -> a
+grid @ (y, x) = grid !! y !! x
 
 between :: Ord a => a -> Pair a -> Bool
 between value (min, max) = min <= value && value <= max

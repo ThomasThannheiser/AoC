@@ -1,24 +1,26 @@
 module AoC2016 where
 
-import AoCHelper (chunksOf, split')
+import AoCHelper (Pair, chunksOf, splitBy, splitWith, fixPt, iter)
 import Control.Applicative (Alternative ((<|>)))
-import Data.List (group, groupBy, sort, transpose, (\\))
-import MPCAS (Parser, char, identifier, runParser, satisfy, sepBy)
+import Data.Function (on)
+import Data.List (group, groupBy, sort, transpose, (\\), sortBy, sortOn)
+import MPCAS (Parser, char, identifier, runParser, satisfy, sepBy, int, string, integer)
+import Data.Tuple (snd)
+import Data.Int (Int)
+import Data.Bits (popCount)
 
 {-- day1 --}
 
 day1 input = (e - w, s - n)
   where
-    [e, s, w, n] = map (sum . map snd) . groupBy (\x y -> fst x == fst y) . sort . zip firsts $ map (read . tail) input
-    firsts = map ((`mod` 4) . ($ 0)) . scanl1 (.) . map ((\x -> if x == 'R' then (+ 1) else (\y -> y - 1)) . head) $ input
+    [e, s, w, n] = map (sum . map snd) . groupBy ((==) `on` fst) . sort . zip firsts $ map (read . tail) input
+    firsts = map ((`mod` 4) . ($ 0)) . scanl1 (.) $ map ((\x -> if x == 'R' then succ else pred) . head) input
 
-toInput :: [Char] -> [[Char]]
-toInput = map tail . split' (== ',') . (' ' :)
+toInput :: String -> [String]
+toInput = map tail . splitBy (== ',') . (' ' :)
 
-day1_1 :: (Num a, Ord a, Read a) => [Char] -> a
-day1_1 lst = abs x + abs y
-  where
-    (x, y) = day1 . toInput $ lst
+day1_1 :: String -> Int
+day1_1 = (((+) `on` abs) <$> fst <*> snd) . day1 . toInput
 
 -- 300
 
@@ -110,7 +112,7 @@ day3_2 = countTriangles . chunksOf 3 . concat . transpose . readLines
 
 {-- day 4 --}
 
--- extra module AoC2016Day4.hs
+-- extra module Day4.hs
 
 -- 137896
 -- 501
@@ -126,7 +128,8 @@ day3_2 = countTriangles . chunksOf 3 . concat . transpose . readLines
 
 day6 :: Ord b => Int -> [[b]] -> [b]
 day6 n =
-  map (snd . head . filter ((== n) . fst) . map (\xs -> (length xs, head xs)) . group . sort)
+  map (snd . head . filter ((== n) . fst)
+    . map (\xs -> (length xs, head xs)) . group . sort)
     . transpose
 
 day6_1, day6_2 :: [String] -> String
@@ -157,6 +160,60 @@ day7_1 = length . filter (not . hasIPTrue) . filter or . map (map hasDoubleRever
 
 -- 105
 
+{-- day 9 --}
+
+decompress :: String -> String
+decompress "" = ""
+decompress (x : xs)
+  | x == '(' = let (s, rest) = splitWith ')' xs
+                   (t, r) = splitWith 'x' s
+                   (left, right) = splitAt (read t) rest
+                in concat (replicate (read r) left) ++ decompress right
+  | otherwise = x : decompress xs
+
+day9_1 :: String -> Int
+day9_1 = length . decompress
+
+decompress' :: String -> Integer
+decompress' "" = 0
+decompress' (x : xs)
+  | x == '(' = let (s, rest) = splitWith ')' xs
+                   (t, r) = splitWith 'x' s
+                   (left, right) = splitAt (read t) rest
+                in read r * toInteger (decompress' left) + decompress' right
+  | otherwise = 1 + decompress' xs
+
+day9_2 :: String -> Integer
+day9_2 = decompress'
+
+-- 152851
+-- 11797310782
+
+{-- day 10 --}
+
+day10_1 = sortOn snd . map parseValueTo
+
+valueToParser :: Parser Maybe (Pair Int)
+valueToParser = (,) <$> (string "value" *> integer) <*> (string "goes to bot" *> integer)
+
+parseValueTo :: String -> Pair Int
+parseValueTo = maybe (0,0) fst . runParser valueToParser
+
+{-- day 12 --}
+
+-- Part 1 solved with individual input in Python
+
+-- 318020
+-- 9227674
+
+{-- day 13 --}
+
+-- extra module Day13.hs
+
+-- 82
+-- 138
+
+{-- day 15 --}
 {-- Chinese remainder theorem! --}
 
 day15 :: Integer
@@ -234,9 +291,6 @@ day18_2 = day18 400000
 
 {-- day 19 --}
 
-day19 :: Integer
-day19 = 3017957
-
 -- day19_1 = 2^21 + 920805 => (Josephus-Problem) result = 2 * 920805 + 1 = 1841611
 -- day19_2 = 3^13 + 1423634 => if X = 3^n + Z => result = 3^n + 2*Z else result = X
 --                  1423634 <= 2^13 => result = 1423634
@@ -246,13 +300,33 @@ day19 = 3017957
 
 {-- day 20 --}
 
-day20_1 :: [String] -> [(Int, Int)]
-day20_1 input = sort intervalls
-  where
-    intervalls = map (((,) <$> head <*> last) . map read . split' (== '-')) input
+day20 :: [String] -> [Pair Integer]
+day20 = sort . map (((,) <$> head <*> last) . map read . splitBy (== '-'))
+
+day20_1, day20_2 :: [String] -> Integer
+day20_1 = succ . snd . head . reduce . day20
+
+day20_2 = (4294967295 + 1 -) . sum . map g . reduce . day20
+  where g (x, y) = y - x + 1
+
+reduce :: [Pair Integer] -> [Pair Integer]
+reduce [] = []
+reduce [x] = [x]
+reduce (x : y : xs) = let m = merge x y
+                  in case m of
+                       Nothing -> x : reduce (y : xs) 
+                       Just z -> reduce (z : xs)
+
+merge :: Pair Integer -> Pair Integer -> Maybe (Pair Integer)
+merge (x1, y1) (x2, y2)
+  | y1 + 1 < x2 = Nothing
+  | y1 < y2 = Just (x1, y2)
+  | otherwise = Just (x1, y1)
 
 -- 14975795
+-- 101
 
 main = do
-  print . day3_1 . lines =<< readFile "3_2016.txt"
-  print . day3_2 . lines =<< readFile "3_2016.txt"
+  input <- readFile "10_2016.txt"
+  print . day10_1 $ lines input
+  -- print . day20_2 $ lines input

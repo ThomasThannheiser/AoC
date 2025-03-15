@@ -14,6 +14,7 @@ nested = foldparens Bin Nil nested
 depth :: Parser Maybe Int 
 depth = foldparens (max . (1+)) 0 depth
 
+main :: IO ()
 main = do
     input <- readFile "1_2015.txt"
     print . maybe Nil fst $ runParser nested input

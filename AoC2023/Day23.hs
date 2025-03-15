@@ -1,6 +1,6 @@
 module Day23 where
 
-import AoCHelper (Grid, Pair, gridAt, nbh)
+import AoCHelper (Grid, Pair, (@), nbh)
 import Data.List ((\\))
 
 type Path = [Pair Int]
@@ -42,14 +42,14 @@ add z path
 
 next :: Grid Char -> [Pair Int] -> [Pair Int]
 next grid ((y, x) : z)
-  | gridAt grid (y, x) == '<' = [(y, x - 1)]
-  | gridAt grid (y, x) == '>' = [(y, x + 1)]
-  | gridAt grid (y, x) == 'v' = [(y + 1, x)]
-  | gridAt grid (y, x) == '^' = [(y - 1, x)]
-  | otherwise = (filter ((/= '#') . gridAt grid) . nbh) (y, x) \\ z
+  | grid @ (y, x) == '<' = [(y, x - 1)]
+  | grid @ (y, x) == '>' = [(y, x + 1)]
+  | grid @ (y, x) == 'v' = [(y + 1, x)]
+  | grid @ (y, x) == '^' = [(y - 1, x)]
+  | otherwise = (filter ((/= '#') . (grid @)) . nbh) (y, x) \\ z
 
 next' :: Grid Char -> [Pair Int] -> [Pair Int]
-next' grid ((y, x) : z) = filter ((/= '#') . gridAt grid) $ nbh (y, x) \\ z
+next' grid ((y, x) : z) = filter ((/= '#') . (grid @)) $ nbh (y, x) \\ z
 
 -- 2114
 

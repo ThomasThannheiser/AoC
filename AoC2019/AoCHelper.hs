@@ -5,17 +5,6 @@ import Data.Bifunctor (bimap)
 
 type Pair a = (a, a)
 
-type Grid a = [[a]]
-
-(@) :: Grid a -> Pair Int -> a
-grid @ (x, y) = grid !! x !! y
-
-findChar :: Eq a => Grid a -> a -> [Pair Int]
-findChar grid a = 
-  let m = length grid
-      n = length $ head grid
-   in [pair | pair <- (,) <$> [0 .. m - 1] <*> [0 .. n - 1], (grid @ pair) == a] 
-
 between :: Int -> (Int, Int) -> Bool
 between value (min, max) = min <= value && value <= max
 
@@ -59,11 +48,3 @@ cross = [(1, 0), (-1, 0), (0, 1), (0, -1)]
 fixPt :: Eq a => (a -> a) -> a -> a
 fixPt f x = let x' = f x
              in if x' == x then x else fixPt f x'
-
-evens :: [a] -> [a]
-evens [] = []
-evens (a : as) = a : odds as
-
-odds :: [a] -> [a]
-odds [] = []
-odds (a : as) = evens as

@@ -1,6 +1,6 @@
 module AoC2023 where
 
-import AoCHelper (Grid, Pair, between, both, gridAt, chunksOf, nbh, skipUpTo, splitBy, splitWith, (.+.))
+import AoCHelper (Grid, Pair, between, both, chunksOf, nbh, skipUpTo, splitBy, splitWith, (.+.), (@))
 import MPCAS (runParser, symbol, upper)
 
 import Control.Applicative (Alternative (many))
@@ -8,11 +8,10 @@ import Data.Bifunctor (Bifunctor (second))
 import Data.Char (digitToInt, isDigit, ord)
 import Data.Function (on)
 import Data.List (elemIndex, elemIndices, group, groupBy, intercalate, intersect, isPrefixOf, isSuffixOf, partition, sort, sortOn, tails, transpose, unfoldr)
-import Data.Map (Map, (!))
-import Data.Map qualified as Map
+import Data.Map as Map (Map, (!), fromList, lookup, keys)
 import Data.Maybe (fromJust, isJust, mapMaybe)
 import Data.Set (Set)
-import Data.Set qualified as Set
+import qualified Data.Set as Set
 import Data.Tuple (swap)
 
 {- day 1 -}
@@ -99,7 +98,7 @@ propagate' (_ : n : bs) = n : propagate' (n : bs)
 parseCard :: String -> Pair [Int]
 parseCard = both readInts . splitWith '|' . snd . splitWith ':'
   where
-    readInts = map read . filter (/= "") . splitBy (== ' ')
+    readInts = map read . filter (/= "") . words
 
 countWinnings :: [String] -> [Int]
 countWinnings = map (length . (intersect <$> fst <*> snd) . parseCard)
@@ -158,7 +157,7 @@ parseMaps input = (seeds, maps)
     lst = splitBy (== "") input
     seeds = readInts . skipUpTo ':' . head $ head lst
     maps = map (map readInts . tail) $ tail lst
-    readInts = map read . splitBy (== ' ')
+    readInts = map read . words
 
 -- 111627841
 -- 69323688
@@ -184,7 +183,7 @@ day6_2 input = g - h + 1
 parseRaces :: [String] -> [Pair Int]
 parseRaces = (zip <$> head <*> last) . map (readInts . skipUpTo ':')
   where
-    readInts = map read . filter (/= "") . splitBy (== ' ')
+    readInts = map read . filter (/= "") . words
 
 parseRaces' :: [String] -> [Integer]
 parseRaces' = map (read . filter isDigit . skipUpTo ':')
@@ -273,7 +272,7 @@ day9_1 = sum . map (calcNext . parseInts)
 day9_2 = sum . map (calcNext . reverse . parseInts)
 
 parseInts :: String -> [Int]
-parseInts = map read . splitBy (== ' ')
+parseInts = map read . words
 
 calcNext :: [Int] -> Int
 calcNext = sum . reverse . map last . takeWhile (any (/= 0)) . iterate diffs
@@ -295,7 +294,7 @@ calcNext = sum . reverse . map last . takeWhile (any (/= 0)) . iterate diffs
 day11 :: Grid Char -> Int
 day11 grid = sum [dist x y | x <- galaxies, y <- galaxies, x < y]
   where
-    galaxies = sort [(y, x) | y <- [0 .. pred m], x <- [0 .. pred n], gridAt grid (y, x) == '#']
+    galaxies = sort [(y, x) | y <- [0 .. pred m], x <- [0 .. pred n], grid @ (y, x) == '#']
     dist (y1, x1) (y2, x2) = abs (y2 - y1) + abs (x2 - x1)
     m = length grid
     n = length $ head grid
@@ -442,10 +441,10 @@ day18 parse input = perimeter + inner
 day18_1, day18_2 :: [String] -> Integer
 day18_1 = day18 parse
   where
-    parse = ((,) <$> head <*> read . last) . take 2 . splitBy (== ' ')
+    parse = ((,) <$> head <*> read . last) . take 2 . words
 day18_2 = day18 parse
   where
-    parse = f . take 6 . drop 2 . last . splitBy (== ' ')
+    parse = f . take 6 . drop 2 . last . words
     f xs =
       let (d, dir) = splitAt 5 xs
        in (g dir, read $ "0x" ++ d)
@@ -489,7 +488,7 @@ step grid (last, this) = (stepover, last)
     isNotRock (y, x) =
       let x' = (x + 131) `mod` 131
           y' = (y + 131) `mod` 131
-       in gridAt grid (y, x) /= '#'
+       in grid @ (y, x) /= '#'
 
 day21_2 :: [String] -> [Int]
 day21_2 input = map (\x -> fst . both Set.size $ day21 input !! x) $ (65 +) <$> take 4 [0, 131 ..]
@@ -592,7 +591,7 @@ day25_1 input = graph
     graph = map parse25 input
     start = fst $ head graph
 
-parse25 input = (l, splitBy (== ' ') r)
+parse25 input = (l, words r)
   where
     (l, r) = splitWith ':' input
 

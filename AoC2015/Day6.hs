@@ -1,4 +1,4 @@
-module AoC2015Day6 where
+module Day6 where
 
 import MPCAS (Parser, runParser, char, natural, symbol)
 import Data.Set as S (Set, fromList, union, difference, empty, insert)
@@ -10,7 +10,6 @@ data Instruction
   = ON
   | OFF
   | TOGGLE
-
 
 instructionParser :: (Instruction, String) -> Parser Maybe Instruction
 instructionParser (i, s) = i <$ symbol s
@@ -31,7 +30,6 @@ extractInstruction = do
 
 parseInstruction :: String -> (Instruction, Point, Point)
 parseInstruction = maybe (OFF, (-1, -1), (-1, -1)) fst . runParser extractInstruction
-
 
 corners2Points :: (Point, Point) -> [Point]
 corners2Points (left, right) = [(x, y) | x <- [fst left .. fst right], y <- [snd left ..snd right]]

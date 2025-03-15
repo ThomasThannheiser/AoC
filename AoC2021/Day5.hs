@@ -27,8 +27,8 @@ isDiagonal ((x1, y1), (x2, y2)) = abs (x2 - x1) == abs (y2 - y1)
 
 line2Points :: Line -> [Point]
 line2Points l@((x1, y1), (x2, y2)) 
-    | isHorizontal l = zip (repeat x1) [min y1 y2 .. max y1 y2]
-    | isVertical l = zip [min x1 x2 .. max x1 x2] (repeat y1)
+    | isHorizontal l = map (x1,) [min y1 y2 .. max y1 y2]
+    | isVertical l = map (, y1) [min x1 x2 .. max x1 x2]
     | x2 - x1 == y2 - y1 = zip [min x1 x2 .. max x1 x2] [min y1 y2 .. max y1 y2]
     | otherwise = zip [min x1 x2 .. max x1 x2] (reverse [min y1 y2 .. max y1 y2])
 

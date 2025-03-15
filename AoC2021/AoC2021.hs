@@ -1,9 +1,10 @@
 module AoC2021 where
 
-import AoCHelper (bin2Int, iter, readIntLst, split')
+import AoCHelper (bin2Int, findChar, iter, readIntLst, splitBy, Pair, Grid, (.+.), cross, (@), both, between)
 import Data.Char (digitToInt)
 import Data.List (elemIndex, group, sort, transpose, (\\))
 import Data.Maybe (fromMaybe)
+import Data.Set (singleton, empty, toList, fromList, difference, union, size)
 
 {-- day1 --}
 
@@ -78,7 +79,7 @@ day4 minmax input = number * restSum
 
     numbers = readIntLst . head $ nrs
     cards = map (map (map read . words)) cds
-    nrs : cds = split' null input
+    nrs : cds = splitBy null input
 
 day4_1, day4_2 :: [String] -> Int
 day4_1 = day4 minimum
@@ -100,26 +101,20 @@ calc :: [Int] -> [Int]
 calc xs = xs' ++ replicate count 8
   where
     xs' = map fkt xs
-    count = length . filter (== 0) $ xs
+    count = length $ filter (== 0) xs
     fkt n = if n == 0 then 6 else pred n
-
-calc128 :: Int -> [Int]
-calc128 n = iter calc 128 [n]
 
 fIn :: [String] -> [(Int, Int)]
 fIn = map (\xs -> (head xs, length xs)) . group . sort . readIntLst . head
 
 day6_1, day6_2 :: [String] -> Int
-day6_1 = sum . map (\(x, y) -> y * (length . iter calc 80 $ [x])) . fIn
-day6_2 input =
-  sum $
-    zipWith
-      (*)
+day6_1 = sum . map (\(x, y) -> y * (length . iter 80 calc $ pure x)) . fIn
+day6_2 input = sum $ zipWith (*)
       (map snd $ fIn input)
       (map (\x -> sum $ zipWith (*) sums (map snd $ lst !! x)) [1 .. 5])
   where
     sums = map (sum . map snd) lst
-    lst = map (map (\xs -> (head xs, length xs)) . group . sort . calc128) [0 .. 8]
+    lst = map (map (\xs -> (head xs, length xs)) . group . sort . iter 128 calc . pure) [0 .. 8]
 
 -- 380758
 -- 1710623015163
@@ -151,18 +146,44 @@ day7_2 input = fkt (pred average) lst
 
 {-- day 9 --}
 
-day9_1 :: [String] -> Int
-day9_1 input =
-  sum . map sum . zz (*) m $ map (map fromEnum) $ zz (&&) (t h m) (h m)
-  where
+dim :: Int
+dim = 99
+
+day9 :: [String] -> ([Pair Int], Grid Int)
+day9 input = (lowPoints, m)
+  where  
     h row = zz (&&) (map f row) (map (r f) row)
     f row = zipWith (<) row (tail row) ++ [True]
     r fkt = reverse . fkt . reverse
     t fkt = transpose . fkt . transpose
     zz = zipWith . zipWith
+    bools = zz (&&) (t h m) (h m)
+    lowPoints = findChar bools True
     m = map (map ((1 +) . digitToInt)) input
 
+day9_1, day9_2 :: [String] -> Int
+day9_1 input = let (lowPoints, m) = day9 input 
+                in sum $ map (m @) lowPoints
+day9_2 input = let (lowPoints, m) = day9 input
+                in product . take 3 . reverse . sort $ map (bfs m) lowPoints
+
+neighbors :: Pair Int -> [Pair Int]
+neighbors pos = filter ((== (True, True)) . both (`between` (0, dim))) $ map (pos .+.) cross
+
+realNbs :: Grid Int -> Pair Int -> [Pair Int]
+realNbs grid = filter ((< 10) . (grid @)) . neighbors
+
+bfs :: Grid Int -> Pair Int -> Int
+bfs grid start = bfs' (singleton start) empty
+  where
+    bfs' toVisit visited
+      | null toVisit = size visited
+      | otherwise =
+          let toVisit' = fromList (concatMap (realNbs grid) toVisit) `difference` visited
+           in bfs' toVisit' (visited `union` toVisit)
+
 -- 494
+-- 1048128
 
 {-- day 10 --}
 
@@ -239,5 +260,6 @@ day25_1 input = fmap (+ 1) . elemIndex True . zipWith (==) moves $ tail moves
 -- 321
 
 main = do
-  print . day1_1 . lines =<< readFile "day1.input"
-  print . day1_2 . lines =<< readFile "day1.input"
+  input <- readFile "day9.input"
+  print . day9_1 . lines $ input
+  print . day9_2 . lines $ input

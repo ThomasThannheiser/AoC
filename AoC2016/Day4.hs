@@ -1,4 +1,4 @@
-module AOC2016Day4 where
+module Day4 where
 
 import MPCAS (Parser, runParser, bracketed, char, identifier, natural)
 import Data.List (group, sort, sortBy)
